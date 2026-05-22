@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>prompts workspace</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Uma interface moderna e minimalista para criação e organização de prompts. Desenvolvida com animações fluidas e elegantes de partículas.">
+    <meta name="keywords" content="prompts, biblioteca de prompts, criador de prompts, inteligência artificial, design, ui, premium">
+    <meta name="author" content="prompts workspace">
+    
+    <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- App Container -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="main-header">
+            <a href="index.html" class="logo" style="text-decoration: none; display: flex; align-items: center; gap: 8px;">
+                <span class="logo-dot"></span>
+                <span class="logo-text">prompts workspace</span>
+            </a>
+            <nav class="main-nav">
+                <a href="biblioteca.html" class="nav-link" id="nav-biblioteca">Biblioteca</a>
+                <a href="chat.html" class="nav-link" id="nav-criador">Criador</a>
+                <a href="#comunidade" class="nav-link">Comunidade</a>
+            </nav>
+        </header>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <div class="hero-section">
+                <div class="badge">Engineered with intelligence</div>
+                <h1 class="hero-title">O ecossistema definitivo da engenharia de prompts.</h1>
+                <p class="hero-subtitle">Criado para transformar ideias em inteligência, automação e resultados extraordinários através da IA.</p>
+            </div>
+
+            <!-- Premium Buttons side-by-side (Exactly like the image) -->
+            <div class="buttons-wrapper">
+                <a href="biblioteca.html" class="btn-premium btn-solid">Biblioteca de Prompts</a>
+                <a href="chat.html" class="btn-premium btn-outline">Criador de Prompts</a>
+            </div>
+        </main>
+
+
+    </div>
+
+    <!-- Workspace Dashboard Overlay -->
+    <div id="workspace-dashboard" class="dashboard-overlay hidden">
+        <div class="dashboard-window">
+            <!-- Dashboard Header -->
+            <header class="dashboard-header">
+                <div class="dashboard-logo">
+                    <span class="logo-dot"></span>
+                    <span class="logo-text">prompts workspace</span>
+                </div>
+                <!-- Navigation Tabs -->
+                <div class="dashboard-tabs">
+                    <button class="tab-btn active" data-tab="library">
+                        <svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                        Biblioteca
+                    </button>
+                    <button class="tab-btn" data-tab="creator">
+                        <svg class="tab-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        Criador de Prompts
+                    </button>
+                </div>
+                <!-- Close Button -->
+                <button class="close-dashboard-btn" id="close-dashboard-btn" aria-label="Fechar">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </header>
+
+            <!-- Dashboard Body -->
+            <div class="dashboard-body">
+                
+                <!-- TAB 1: LIBRARY -->
+                <div id="tab-library" class="tab-content active">
+                    <!-- Library Top Controls -->
+                    <div class="library-controls">
+                        <!-- Search Bar with AI -->
+                        <div class="search-box">
+                            <svg class="search-icon" viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            <input type="text" id="prompt-search" placeholder="Buscar por prompts, tags ou funções...">
+                        </div>
+                        <button class="btn-ai-search" id="btn-ai-search-dash" title="Buscar com IA">
+                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none"><path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z"></path></svg>
+                            Buscar com IA
+                        </button>
+                        
+                        <!-- Add Custom Prompt Action Button -->
+                        <button class="btn-add-custom" id="open-add-modal-btn">
+                            <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" stroke-width="2" fill="none"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                            Criar Prompt
+                        </button>
+                    </div>
+
+                    <!-- Category Slider Filters -->
+                    <div class="categories-filter">
+                        <button class="category-btn active" data-category="all">Todos</button>
+                        <button class="category-btn" data-category="dev">Programação</button>
+                        <button class="category-btn" data-category="marketing">Marketing & Copy</button>
+                        <button class="category-btn" data-category="writing">Escrita & Tradução</button>
+                        <button class="category-btn" data-category="prod">Produtividade</button>
+                        <button class="category-btn" data-category="custom">Meus Prompts</button>
+                    </div>
+
+                    <!-- Prompts Grid Container -->
+                    <div class="prompts-grid" id="prompts-container">
+                        <!-- Prompts will be dynamically generated by JS -->
+                    </div>
+                </div>
+
+                <!-- TAB 2: CREATOR -->
+                <div id="tab-creator" class="tab-content">
+                    <div class="creator-workspace">
+                        <!-- Left Panel: Form Inputs -->
+                        <div class="creator-form-panel">
+                            <h2 class="section-heading">Estruture sua instrução</h2>
+                            <p class="section-subheading">Preencha os campos para compilar um prompt profissional otimizado para qualquer IA.</p>
+                            
+                            <div class="input-group">
+                                <label for="creator-title">Título do Prompt</label>
+                                <input type="text" id="creator-title" placeholder="Ex: Desenvolvedor Next.js Sênior">
+                            </div>
+
+                            <div class="input-grid">
+                                <div class="input-group">
+                                    <label for="creator-category">Categoria</label>
+                                    <select id="creator-category">
+                                        <option value="dev">Programação</option>
+                                        <option value="marketing">Marketing & Copy</option>
+                                        <option value="writing">Escrita & Tradução</option>
+                                        <option value="prod">Produtividade</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label for="creator-role">Papel / Persona (Role)</label>
+                                    <input type="text" id="creator-role" placeholder="Ex: Você é um engenheiro de software especialista em React...">
+                                </div>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="creator-task">Tarefa Principal (Task)</label>
+                                <textarea id="creator-task" rows="3" placeholder="Ex: Desenvolva uma biblioteca simplificada de gerenciamento de estado..."></textarea>
+                            </div>
+
+                            <div class="input-group">
+                                <label for="creator-context">Contexto Adicional (Context)</label>
+                                <textarea id="creator-context" rows="3" placeholder="Ex: Este código será usado em um microsserviço de alta performance com tráfego volumoso..."></textarea>
+                            </div>
+
+                            <div class="input-grid">
+                                <div class="input-group">
+                                    <label for="creator-format">Formato de Saída (Format)</label>
+                                    <input type="text" id="creator-format" placeholder="Ex: Apenas código limpo sem introduções, no padrão ES6.">
+                                </div>
+                                <div class="input-group">
+                                    <label for="creator-constraints">Restrições (Constraints)</label>
+                                    <input type="text" id="creator-constraints" placeholder="Ex: Não utilize frameworks externos como Redux ou Zustand.">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Panel: Dynamic Live Preview -->
+                        <div class="creator-preview-panel">
+                            <div class="preview-header">
+                                <span class="preview-status-dot"></span>
+                                <span class="preview-title">PROMPT COMPILADO</span>
+                                <div class="preview-actions">
+                                    <button class="preview-btn" id="btn-copy-creator" title="Copiar Prompt">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                                        Copiar
+                                    </button>
+                                    <button class="preview-btn btn-save-creator" id="btn-save-creator" title="Salvar na Biblioteca">
+                                        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+                                        Salvar na Biblioteca
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="preview-editor-box">
+                                <pre id="compiled-prompt-preview">O prompt compilado aparecerá aqui enquanto você preenche o formulário ao lado...</pre>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating Glass Custom Prompt Form (Modal inside Dashboard) -->
+    <div id="add-prompt-modal" class="modal-overlay hidden">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h3>Adicionar Novo Prompt</h3>
+                <button class="close-modal-btn" id="close-add-modal-btn">
+                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <form id="add-prompt-form" class="modal-form">
+                <div class="input-group">
+                    <label for="new-title">Título do Prompt</label>
+                    <input type="text" id="new-title" required placeholder="Ex: Criador de Tópicos SEO">
+                </div>
+                <div class="input-grid">
+                    <div class="input-group">
+                        <label for="new-category">Categoria</label>
+                        <select id="new-category" required>
+                            <option value="dev">Programação</option>
+                            <option value="marketing">Marketing & Copy</option>
+                            <option value="writing">Escrita & Tradução</option>
+                            <option value="prod">Produtividade</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label for="new-tags">Tags (separadas por vírgula)</label>
+                        <input type="text" id="new-tags" placeholder="Ex: seo, blog, ideias">
+                    </div>
+                </div>
+                <div class="input-group">
+                    <label for="new-description">Breve Descrição</label>
+                    <input type="text" id="new-description" required placeholder="Ex: Gera sugestões de tópicos de blog otimizados para busca.">
+                </div>
+                <div class="input-group">
+                    <label for="new-content">Conteúdo Completo do Prompt</label>
+                    <textarea id="new-content" required rows="6" placeholder="Escreva a instrução completa do prompt aqui..."></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn-modal-cancel" id="btn-cancel-modal">Cancelar</button>
+                    <button type="submit" class="btn-modal-submit">Salvar na Biblioteca</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notifications Area -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <!-- App Scripts -->
+    <script src="api-shared.js" defer></script>
+    <script src="script.js" defer></script>
+</body>
+</html>
