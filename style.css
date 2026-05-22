@@ -2266,6 +2266,97 @@ body::before {
     color: #93c5fd;
 }
 
+.message-text h1,
+.message-text h2,
+.message-text h3 {
+    color: #ffffff;
+    font-weight: 700;
+    margin: 16px 0 8px;
+    line-height: 1.3;
+}
+
+.message-text h1 { font-size: 18px; }
+.message-text h2 { font-size: 16px; }
+.message-text h3 { font-size: 14.5px; }
+
+.message-text p {
+    margin: 6px 0;
+    line-height: 1.7;
+}
+
+.message-text p:first-child {
+    margin-top: 0;
+}
+
+.message-text blockquote {
+    border-left: 3px solid #60a5fa;
+    margin: 8px 0;
+    padding: 6px 14px;
+    background: rgba(96, 165, 250, 0.06);
+    border-radius: 0 6px 6px 0;
+    color: #bfdbfe;
+    font-style: italic;
+}
+
+.message-text hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.15), transparent);
+    margin: 16px 0;
+}
+
+.message-text ul,
+.message-text ol {
+    margin: 6px 0;
+    padding-left: 24px;
+}
+
+.message-text li {
+    margin: 3px 0;
+    line-height: 1.6;
+    color: #e5e7eb;
+}
+
+.message-text ol li {
+    list-style: decimal;
+}
+
+.message-text ul li {
+    list-style: disc;
+}
+
+.message-text table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 10px 0;
+    font-size: 13px;
+}
+
+.message-text table th,
+.message-text table td {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 8px 12px;
+    text-align: left;
+}
+
+.message-text table th {
+    background: rgba(59, 130, 246, 0.15);
+    color: #93c5fd;
+    font-weight: 600;
+}
+
+.message-text table td {
+    color: #e5e7eb;
+}
+
+.message-text table tr:nth-child(even) td {
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.message-text em {
+    color: #bfdbfe;
+}
+
 .code-block-wrapper {
     background: #050508;
     border: 1px solid rgba(255, 255, 255, 0.08);

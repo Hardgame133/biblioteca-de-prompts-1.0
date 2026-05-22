@@ -135,49 +135,7 @@ function showToast(message, type = "success") {
     }, 3000);
 }
 
-// Parser de Markdown super simples para chat elegante
-function parseMarkdown(text) {
-    if (!text) return '';
-    
-    // Escapar tags html para evitar XSS
-    let html = text
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
-        
-    // Code blocks: ```linguagem ... ```
-    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(match, lang, code) {
-        return `<div class="code-block-wrapper">
-            <div class="code-block-header">
-                <span>${lang || 'code'}</span>
-                <button class="btn-copy-code" onclick="copyCodeText(this)">Copiar</button>
-            </div>
-            <pre><code class="language-${lang}">${code.trim()}</code></pre>
-        </div>`;
-    });
-    
-    // Inline code: `code`
-    html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
-    
-    // Bold: **text**
-    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-    
-    // Italics: *text*
-    html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-    
-    // Lists: - ou * no começo da linha
-    html = html.replace(/^\s*-\s+(.+)$/gm, '<li>$1</li>');
-    html = html.replace(/^\s*\*\s+(.+)$/gm, '<li>$1</li>');
-    // Envolver grupos de li em ul
-    html = html.replace(/(<li>[\s\S]*?<\/li>)/g, '<ul>$1</ul>');
-    // Limpar tags ul duplicadas seguidas
-    html = html.replace(/<\/ul>\s*<ul>/g, '');
-
-    // Line breaks
-    html = html.replace(/\n/g, '<br>');
-    
-    return html;
-}
+// (parseMarkdown movido para a Seção 5 com versão aprimorada)
 
 // Copiar código de blocos
 window.copyCodeText = function(button) {
@@ -381,34 +339,6 @@ function scrollToBottom() {
     }
 }
 
-// Efeito de digitação da IA
-function simulateTypingEffect(messageBubble, fullText, callback) {
-    const textContainer = messageBubble.querySelector(".message-text");
-    if (!textContainer) return;
-    
-    textContainer.innerHTML = "";
-    let currentText = "";
-    let index = 0;
-    
-    // Como queremos velocidade, adicionamos blocos de palavras ou letras
-    const words = fullText.split(" ");
-    
-    function type() {
-        if (index < words.length) {
-            currentText += (index > 0 ? " " : "") + words[index];
-            textContainer.innerHTML = parseMarkdown(currentText);
-            index++;
-            scrollToBottom();
-            setTimeout(type, Math.min(25, 100 / words.length)); // ajusta velocidade baseado no tamanho
-        } else {
-            textContainer.innerHTML = parseMarkdown(fullText); // finaliza
-            scrollToBottom();
-            if (callback) callback();
-        }
-    }
-    type();
-}
-
 // Typing Indicator (Pontinhos de carregamento)
 function showTypingIndicator() {
     const msgContainer = document.getElementById("chat-messages-container");
@@ -443,7 +373,100 @@ function removeTypingIndicator() {
 }
 
 // ==========================================================================
-// 5. INTEGRAÇÃO REAL COM APIS (Google Gemini, OpenAI, Anthropic)
+// 5. PARSER DE MARKDOWN AVANÇADO
+// ==========================================================================
+
+function parseMarkdown(text) {
+    if (!text) return '';
+
+    let html = text
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+
+    // Code blocks: ```language ... ```
+    html = html.replace(/```(\w*)\n([\s\S]*?)```/g, function(match, lang, code) {
+        return `<div class="code-block-wrapper">
+            <div class="code-block-header">
+                <span>${lang || 'code'}</span>
+                <button class="btn-copy-code" onclick="copyCodeText(this)">Copiar</button>
+            </div>
+            <pre><code class="language-${lang}">${code.trim()}</code></pre>
+        </div>`;
+    });
+
+    // Headers: ### title / ## title / # title
+    html = html.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+    html = html.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+    html = html.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+    // Blockquotes: > text
+    html = html.replace(/^&gt;\s?(.+)$/gm, '<blockquote>$1</blockquote>');
+
+    // Horizontal rules: ---
+    html = html.replace(/^---$/gm, '<hr>');
+
+    // Bold: **text**
+    html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+    // Italics: *text* (mas não pegar marcadores de lista)
+    html = html.replace(/(?<![*\w])\*([^*]+)\*(?![*\w])/g, '<em>$1</em>');
+
+    // Inline code: `code`
+    html = html.replace(/`([^`]+)`/g, '<code class="inline-code">$1</code>');
+
+    // Ordered lists: 1. item
+    html = html.replace(/^\d+\.\s+(.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>[\s\S]*?<\/li>(\s*<li>[\s\S]*?<\/li>)*)/g, function(m) {
+        const lis = m.match(/<li>[\s\S]*?<\/li>/g) || [];
+        const wrapped = lis.map(l => l).join('');
+        return '<ol>' + wrapped + '</ol>';
+    });
+
+    // Unordered lists: - item ou * item
+    html = html.replace(/^[\s]*[-*]\s+(.+)$/gm, '<li>$1</li>');
+    html = html.replace(/(<li>[\s\S]*?<\/li>(\s*<li>[\s\S]*?<\/li>)*)/g, function(m) {
+        const lis = m.match(/<li>[\s\S]*?<\/li>/g) || [];
+        const wrapped = lis.map(l => l).join('');
+        return '<ul>' + wrapped + '</ul>';
+    });
+
+    // Tables: | col1 | col2 |
+    html = html.replace(/^\|(.+)\|$/gm, function(match, row) {
+        const cells = row.split('|').map(c => c.trim());
+        if (cells.every(c => /^[-:]+$/.test(c))) return '';
+        const tag = match.includes('---') ? 'th' : 'td';
+        return '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+    });
+    html = html.replace(/<tr>.*?<\/tr>(\s*<tr>.*?<\/tr>)*/g, function(m) {
+        if (!m.includes('<th>')) return '<table><tbody>' + m + '</tbody></table>';
+        const rows = m.match(/<tr>[\s\S]*?<\/tr>/g) || [];
+        let thead = '', tbody = '';
+        rows.forEach((r, i) => {
+            if (i === 0 && r.includes('<th>')) { thead = r; }
+            else { tbody += r; }
+        });
+        let out = '<table>';
+        if (thead) out += '<thead>' + thead + '</thead>';
+        if (tbody) out += '<tbody>' + tbody + '</tbody>';
+        return out + '</table>';
+    });
+
+    // Line breaks (duas quebras = parágrafo)
+    html = html.replace(/\n\n/g, '</p><p>');
+    // Single line break
+    html = html.replace(/\n/g, '<br>');
+
+    // Wrap in paragraph if not already wrapped
+    if (!html.startsWith('<h') && !html.startsWith('<div') && !html.startsWith('<table') && !html.startsWith('<ul') && !html.startsWith('<ol') && !html.startsWith('<blockquote') && !html.startsWith('<p')) {
+        html = '<p>' + html + '</p>';
+    }
+
+    return html;
+}
+
+// ==========================================================================
+// 6. INTEGRAÇÃO REAL COM APIS (Google Gemini, OpenAI, Anthropic)
 // ==========================================================================
 
 async function callAI(messagesList) {
@@ -615,28 +638,22 @@ async function handleSendMessage(text) {
     showTypingIndicator();
     
     try {
-        // Enviar requisição para IA
         const responseText = await callAI(convo.messages);
-        
-        // Adicionar resposta da IA no estado
+
         const aiMsg = { role: 'ai', content: responseText };
         convo.messages.push(aiMsg);
         saveConversations();
-        
-        // Remover indicador e imprimir resposta com efeito de digitação
+
         removeTypingIndicator();
-        
-        const aiBubble = appendMessageToUI('ai', "");
-        simulateTypingEffect(aiBubble, responseText, () => {
-            isGenerating = false;
-        });
-        
+        appendMessageToUI('ai', responseText);
+
     } catch (err) {
         console.error(err);
         removeTypingIndicator();
         appendMessageToUI('ai', `⚠️ **Erro:** ${err.message}`);
-        isGenerating = false;
     }
+
+    isGenerating = false;
 }
 
 // ==========================================================================
