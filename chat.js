@@ -55,7 +55,13 @@ const DEFAULT_SETTINGS = {
     aiName: 'Gemini AI',
     model: 'gemini-1.5-flash',
     customUrl: '',
-    systemPrompt: 'Você é um assistente especialista em engenharia de prompts. Dê respostas detalhadas, bem organizadas e formatadas.'
+    systemPrompt: `Você é um assistente de IA focado em máxima clareza, elegância visual e scannabilidade. Suas respostas devem ser esteticamente agradáveis e fáceis de ler à primeira vista. Siga rigidamente estas regras de formatação:
+
+1. Organização Espacial: Nunca gere blocos densos de texto. Quebre as ideias em parágrafos curtos (máximo 3 linhas por parágrafo).
+2. Hierarquia Visual: Use títulos (##) e subtítulos (###) para categorizar as informações. Use linhas horizontais (---) para separar seções completamente diferentes.
+3. Listas e Destaques: Sempre que explicar passos, dicas ou itens, utilize listas com marcadores (bullet points) ou numerações. Use o negrito (**termo**) apenas para palavras-chave cruciais, sem exageros.
+4. Blocos de Código: Qualquer código gerado (JS, Python, HTML, etc.) DEVE ser inserido estritamente dentro de blocos de código com a sintaxe da linguagem correspondente ativada.
+5. Citações e Notas: Para avisos importantes, observações ou exemplos, utilize blocos de citação (> texto).`
 };
 
 let apiSettings = { ...DEFAULT_SETTINGS };
@@ -68,6 +74,14 @@ function loadSettings() {
     const saved = localStorage.getItem('workspace_api_settings');
     if (saved) {
         apiSettings = { ...DEFAULT_SETTINGS, ...JSON.parse(saved) };
+        
+        // Atualizar se for o prompt padrão antigo
+        const oldPrompt = 'Você é um assistente especialista em engenharia de prompts. Dê respostas detalhadas, bem organizadas e formatadas.';
+        if (apiSettings.systemPrompt === oldPrompt) {
+            apiSettings.systemPrompt = DEFAULT_SETTINGS.systemPrompt;
+            localStorage.setItem('workspace_api_settings', JSON.stringify(apiSettings));
+        }
+        
         // Se a key parece inválida (URL, muito curta), limpa para evitar erros silenciosos
         if (apiSettings.key && (apiSettings.key.startsWith('http') || apiSettings.key.length < 10)) {
             apiSettings.key = '';
@@ -170,6 +184,36 @@ function renderConversationsList() {
         return;
     }
     
+    // Botão "Limpar Tudo"
+    const clearAllBtn = document.createElement("div");
+    clearAllBtn.className = "clear-all-conversations";
+    clearAllBtn.innerHTML = `
+        <svg viewBox="0 0 24 24" width="13" height="13" stroke="currentColor" stroke-width="2.5" fill="none">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+        </svg>
+        <span>Limpar Tudo</span>
+    `;
+    clearAllBtn.addEventListener("click", () => {
+        if (confirm("Tem certeza que deseja excluir TODAS as conversas?")) {
+            conversations = [];
+            saveConversations();
+            currentConversationId = null;
+            document.getElementById("chat-title-display").innerText = "Nova Conversa";
+            document.getElementById("chat-ai-status").innerText = "Pronto para interagir";
+            const welcomeState = document.getElementById("chat-welcome-state");
+            if (welcomeState) welcomeState.classList.remove("hidden");
+            updateFormPosition(false);
+            const msgContainer = document.getElementById("chat-messages-container");
+            Array.from(msgContainer.children).forEach(child => {
+                if (child.id !== "chat-welcome-state") child.remove();
+            });
+            renderConversationsList();
+            showToast("Todas as conversas foram removidas.");
+        }
+    });
+    listContainer.appendChild(clearAllBtn);
+    
     conversations.forEach(convo => {
         const item = document.createElement("div");
         item.className = `conversation-item ${convo.id === currentConversationId ? 'active' : ''}`;
@@ -221,6 +265,24 @@ function updateAPIStatus() {
     }
 }
 
+function updateFormPosition(hasMessages) {
+    const chatForm = document.getElementById("chat-form");
+    const centerContainer = document.getElementById("chat-input-center-container");
+    const footerArea = document.querySelector(".chat-input-area");
+    
+    if (!chatForm) return;
+    
+    if (!hasMessages) {
+        if (centerContainer && chatForm.parentElement !== centerContainer) {
+            centerContainer.appendChild(chatForm);
+        }
+    } else {
+        if (footerArea && chatForm.parentElement !== footerArea) {
+            footerArea.insertBefore(chatForm, footerArea.firstChild);
+        }
+    }
+}
+
 function selectConversation(id) {
     currentConversationId = id;
     renderConversationsList();
@@ -232,12 +294,17 @@ function selectConversation(id) {
     document.getElementById("chat-title-display").innerText = convo.title;
     updateAPIStatus();
     
-    // Ocultar a mensagem de boas-vindas
     const welcomeState = document.getElementById("chat-welcome-state");
-    if (welcomeState) welcomeState.classList.add("hidden");
     
-    // Renderizar mensagens
-    renderMessages(convo.messages);
+    if (convo.messages.length > 0) {
+        if (welcomeState) welcomeState.classList.add("hidden");
+        updateFormPosition(true);
+        renderMessages(convo.messages);
+    } else {
+        if (welcomeState) welcomeState.classList.remove("hidden");
+        updateFormPosition(false);
+        renderMessages([]);
+    }
 }
 
 function deleteConversation(id) {
@@ -253,10 +320,10 @@ function deleteConversation(id) {
             // Mostrar tela de boas vindas novamente
             const welcomeState = document.getElementById("chat-welcome-state");
             if (welcomeState) welcomeState.classList.remove("hidden");
+            updateFormPosition(false);
             
             // Limpar container de mensagens
             const msgContainer = document.getElementById("chat-messages-container");
-            // Mantém a tela de boas vindas
             Array.from(msgContainer.children).forEach(child => {
                 if (child.id !== "chat-welcome-state") child.remove();
             });
@@ -768,6 +835,37 @@ async function handleChatAISearch() {
 // 8. EVENTOS DE INTERFACE E INICIALIZAÇÃO DO APP
 // ==========================================================================
 
+function getAttachmentText(file) {
+    return new Promise((resolve) => {
+        if (!file) {
+            resolve("");
+            return;
+        }
+        
+        const isText = file.type.startsWith("text/") || 
+                       file.name.endsWith(".js") || 
+                       file.name.endsWith(".py") || 
+                       file.name.endsWith(".html") || 
+                       file.name.endsWith(".css") || 
+                       file.name.endsWith(".json") || 
+                       file.name.endsWith(".md");
+                       
+        if (isText) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                resolve(`\n\n--- ARQUIVO ANEXADO: ${file.name} ---\n${e.target.result}\n-----------------------------`);
+            };
+            reader.onerror = function() {
+                resolve(`\n\n[Arquivo Anexado: ${file.name} (Erro ao ler conteúdo)]`);
+            };
+            reader.readAsText(file);
+        } else {
+            const sizeKB = (file.size / 1024).toFixed(1);
+            resolve(`\n\n[Arquivo Anexado: ${file.name} (${sizeKB} KB, Tipo: ${file.type || 'desconhecido'})]`);
+        }
+    });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     // Carregar dados e configurações
     loadSettings();
@@ -801,6 +899,113 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Atualizar status da API no header
     updateAPIStatus();
+    
+    // Evento Toggle Sidebar (Hamburger)
+    const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
+    const chatSidebar = document.querySelector(".chat-sidebar");
+    if (btnToggleSidebar && chatSidebar) {
+        btnToggleSidebar.addEventListener("click", (e) => {
+            e.stopPropagation();
+            chatSidebar.classList.toggle("expanded");
+        });
+        
+        document.addEventListener("click", (e) => {
+            if (window.innerWidth <= 968 && chatSidebar.classList.contains("expanded")) {
+                if (!chatSidebar.contains(e.target) && e.target !== btnToggleSidebar && !btnToggleSidebar.contains(e.target)) {
+                    chatSidebar.classList.remove("expanded");
+                }
+            }
+        });
+    }
+    
+    // Gerenciador de Anexos
+    let selectedAttachmentFile = null;
+    const btnAttachment = document.getElementById("btn-attachment");
+    const attachmentFileInput = document.getElementById("attachment-file-input");
+    const attachmentBadge = document.getElementById("attachment-badge");
+    const attachmentName = document.getElementById("attachment-name");
+    const btnRemoveAttachment = document.getElementById("btn-remove-attachment");
+    
+    if (btnAttachment && attachmentFileInput) {
+        btnAttachment.addEventListener("click", () => {
+            attachmentFileInput.click();
+        });
+        
+        attachmentFileInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                selectedAttachmentFile = file;
+                if (attachmentName) attachmentName.innerText = file.name;
+                if (attachmentBadge) attachmentBadge.classList.remove("hidden");
+            }
+        });
+    }
+    
+    if (btnRemoveAttachment) {
+        btnRemoveAttachment.addEventListener("click", () => {
+            selectedAttachmentFile = null;
+            if (attachmentFileInput) attachmentFileInput.value = "";
+            if (attachmentBadge) attachmentBadge.classList.add("hidden");
+        });
+    }
+    
+    // Reconhecimento de Voz (Web Speech API)
+    const btnVoiceInput = document.getElementById("btn-voice-input");
+    const chatInput = document.getElementById("chat-input-message");
+    let recognition = null;
+    let isRecording = false;
+    
+    if (btnVoiceInput) {
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = false;
+            recognition.interimResults = false;
+            recognition.lang = 'pt-BR';
+            
+            recognition.onstart = () => {
+                isRecording = true;
+                btnVoiceInput.classList.add("recording");
+                btnVoiceInput.title = "Ouvindo... Clique para parar";
+                showToast("Microfone ativado. Pode falar!", "success");
+            };
+            
+            recognition.onend = () => {
+                isRecording = false;
+                btnVoiceInput.classList.remove("recording");
+                btnVoiceInput.title = "Entrada de voz";
+            };
+            
+            recognition.onerror = (event) => {
+                console.error("Erro no reconhecimento de voz:", event.error);
+                showToast("Erro no reconhecimento de voz: " + event.error, "error");
+                isRecording = false;
+                btnVoiceInput.classList.remove("recording");
+            };
+            
+            recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                if (chatInput) {
+                    chatInput.value = (chatInput.value + " " + transcript).trim();
+                    chatInput.focus();
+                }
+            };
+            
+            btnVoiceInput.addEventListener("click", () => {
+                if (isRecording) {
+                    recognition.stop();
+                } else {
+                    recognition.start();
+                }
+            });
+        } else {
+            btnVoiceInput.title = "Reconhecimento de voz não suportado neste navegador";
+            btnVoiceInput.style.opacity = "0.4";
+            btnVoiceInput.addEventListener("click", () => {
+                showToast("Reconhecimento de voz não suportado neste navegador.", "error");
+            });
+        }
+    }
     
     // Evento Nova Conversa
     document.getElementById("btn-new-chat").addEventListener("click", () => {
@@ -893,7 +1098,6 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Envio do Form de Mensagem
     const chatForm = document.getElementById("chat-form");
-    const chatInput = document.getElementById("chat-input-message");
     
     if (chatForm && chatInput) {
         chatInput.addEventListener("keydown", (e) => {
@@ -903,13 +1107,22 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
         
-        chatForm.addEventListener("submit", (e) => {
+        chatForm.addEventListener("submit", async (e) => {
             e.preventDefault();
             const text = chatInput.value.trim();
-            if (text === "" || isGenerating) return;
+            if ((text === "" && !selectedAttachmentFile) || isGenerating) return;
             
             chatInput.value = "";
-            handleSendMessage(text);
+            
+            let attachmentSuffix = "";
+            if (selectedAttachmentFile) {
+                attachmentSuffix = await getAttachmentText(selectedAttachmentFile);
+                selectedAttachmentFile = null;
+                if (attachmentFileInput) attachmentFileInput.value = "";
+                if (attachmentBadge) attachmentBadge.classList.add("hidden");
+            }
+            
+            handleSendMessage(text + attachmentSuffix);
         });
     }
     
