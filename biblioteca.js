@@ -287,6 +287,18 @@ let promptsList = [];
 let currentCategory = "all";
 let currentSearchQuery = "";
 
+const CATEGORY_LABELS = {
+    "all": "Todos",
+    "dev": "Programação",
+    "marketing": "Marketing & Copy",
+    "writing": "Escrita & Tradução",
+    "prod": "Produtividade",
+    "design": "Design & Arte",
+    "business": "Negócios",
+    "education": "Educação",
+    "custom": "Meus Prompts"
+};
+
 // Carregar prompts combinados (Seed + Custom de LocalStorage)
 function initPrompts() {
     const customPrompts = localStorage.getItem("prompts_custom");
@@ -297,6 +309,7 @@ function initPrompts() {
         promptsList = [...DEFAULT_PROMPTS];
         localStorage.setItem("prompts_custom", JSON.stringify([]));
     }
+    updateCategoryCounts();
 }
 
 // Deletar um prompt personalizado (caso queiram deletar daqui também)
@@ -308,6 +321,7 @@ function deleteCustomPrompt(id) {
     
     // Atualiza estado e re-renderiza
     promptsList = [...DEFAULT_PROMPTS, ...customList];
+    updateCategoryCounts();
     renderPrompts();
     showToast("Prompt removido com sucesso!");
 }
@@ -381,6 +395,24 @@ function copyToClipboard(text, buttonElement) {
 // 4. RENDER PROMPTS GRID
 // ==========================================================================
 
+function updateCategoryCounts() {
+    // Function kept for compatibility but numbers removed per user request
+}
+
+function updateResultsCounter(total) {
+    const existing = document.querySelector(".results-counter");
+    if (existing) existing.remove();
+    
+    if (currentSearchQuery) {
+        const counter = document.createElement("div");
+        counter.className = "results-counter";
+        const label = CATEGORY_LABELS[currentCategory] || currentCategory;
+        counter.innerHTML = `<span class="counter-num">${total}</span> ${total === 1 ? 'resultado' : 'resultados'} encontrados em <span class="counter-cat">${label}</span>`;
+        const container = document.getElementById("library-prompts-container");
+        if (container) container.before(counter);
+    }
+}
+
 function renderPrompts() {
     const container = document.getElementById("library-prompts-container");
     if (!container) return;
@@ -392,19 +424,22 @@ function renderPrompts() {
         const matchesCategory = currentCategory === "all" || 
                                (currentCategory === "custom" && prompt.id.startsWith("custom-")) ||
                                prompt.category === currentCategory;
-                               
-        const matchesSearch = prompt.title.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
+                                
+        const matchesSearch = !currentSearchQuery ||
+                              prompt.title.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
                               prompt.description.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
                               prompt.tags.some(tag => tag.toLowerCase().includes(currentSearchQuery.toLowerCase()));
-                              
+                               
         return matchesCategory && matchesSearch;
     });
     
+    updateResultsCounter(filteredPrompts.length);
+    
     if (filteredPrompts.length === 0) {
         container.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--color-text-secondary);">
-                <svg viewBox="0 0 24 24" width="40" height="40" stroke="currentColor" stroke-width="1.5" fill="none" style="margin: 0 auto 16px; opacity: 0.5;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <p style="font-size: 15px;">Nenhum prompt localizado para esta pesquisa nesta categoria.</p>
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" width="40" height="40" stroke="currentColor" stroke-width="1.5" fill="none" style="margin: 0 auto 16px; opacity: 0.4;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <p>Nenhum prompt localizado para esta pesquisa nesta categoria.</p>
             </div>
         `;
         return;
@@ -427,9 +462,12 @@ function renderPrompts() {
                </button>`
             : "";
             
+        const categoryLabel = CATEGORY_LABELS[prompt.category] || prompt.category;
+        
         card.innerHTML = `
             <div class="prompt-card-top">
                 <div class="prompt-tags">
+                    <span class="prompt-cat-badge tag-${prompt.category}">${categoryLabel}</span>
                     ${tagsMarkup}
                 </div>
                 <h3>${prompt.title}</h3>
@@ -483,7 +521,8 @@ function renderPromptsWithAI() {
                                (currentCategory === "custom" && prompt.id.startsWith("custom-")) ||
                                prompt.category === currentCategory;
 
-        const matchesSearch = prompt.title.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
+        const matchesSearch = !currentSearchQuery ||
+                              prompt.title.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
                               prompt.description.toLowerCase().includes(currentSearchQuery.toLowerCase()) ||
                               prompt.tags.some(tag => tag.toLowerCase().includes(currentSearchQuery.toLowerCase()));
 
@@ -491,12 +530,14 @@ function renderPromptsWithAI() {
     });
 
     const displayPrompts = [...localFiltered, ...aiResults];
+    
+    updateResultsCounter(displayPrompts.length);
 
     if (displayPrompts.length === 0) {
         container.innerHTML = `
-            <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px; color: var(--color-text-secondary);">
-                <svg viewBox="0 0 24 24" width="40" height="40" stroke="currentColor" stroke-width="1.5" fill="none" style="margin: 0 auto 16px; opacity: 0.5;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                <p style="font-size: 15px;">Nenhum prompt localizado para esta pesquisa.</p>
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" width="40" height="40" stroke="currentColor" stroke-width="1.5" fill="none" style="margin: 0 auto 16px; opacity: 0.4;"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <p>Nenhum prompt localizado para esta pesquisa.</p>
             </div>
         `;
         return;
@@ -523,9 +564,12 @@ function renderPromptsWithAI() {
             ? `<span class="ai-badge">✨ IA</span>`
             : "";
 
+        const categoryLabel = CATEGORY_LABELS[prompt.category] || prompt.category;
+        
         card.innerHTML = `
             <div class="prompt-card-top">
                 <div class="prompt-tags">
+                    <span class="prompt-cat-badge tag-${prompt.category}">${categoryLabel}</span>
                     ${tagsMarkup}
                 </div>
                 <h3>${prompt.title}${aiBadge}</h3>

@@ -261,7 +261,7 @@ function updateAPIStatus() {
     if (!apiSettings.key || !isValidAPIKey(apiSettings.key)) {
         statusEl.innerHTML = `<span style="color:#f87171;">⚠️ API não configurada</span>`;
     } else {
-        statusEl.innerText = `Modelo: ${apiSettings.model}`;
+        statusEl.innerHTML = `<span style="color:#c084fc;">●</span> Modelo: ${apiSettings.model}`;
     }
 }
 
@@ -379,19 +379,13 @@ function appendMessageToUI(role, content) {
     const msgBubble = document.createElement("div");
     msgBubble.className = `message-bubble ${role === 'user' ? 'user-message' : 'ai-message'}`;
     
-    const avatar = role === 'user'
-        ? `<div class="message-avatar user-avatar">U</div>`
-        : `<div class="message-avatar ai-avatar">AI</div>`;
-        
     const parsedText = parseMarkdown(content);
     
     msgBubble.innerHTML = `
-        ${role === 'ai' ? avatar : ''}
         <div class="message-content">
-            <div class="message-sender">${role === 'user' ? 'Você' : apiSettings.aiName}</div>
+            <div class="message-sender">${role === 'user' ? 'Você' : '<span class="sender-dot"></span>' + apiSettings.aiName}</div>
             <div class="message-text">${parsedText}</div>
         </div>
-        ${role === 'user' ? avatar : ''}
     `;
     
     msgContainer.appendChild(msgBubble);
@@ -416,9 +410,8 @@ function showTypingIndicator() {
     indicator.id = "typing-indicator";
     
     indicator.innerHTML = `
-        <div class="message-avatar ai-avatar">AI</div>
         <div class="message-content">
-            <div class="message-sender">${apiSettings.aiName}</div>
+            <div class="message-sender"><span class="sender-dot"></span>${apiSettings.aiName}</div>
             <div class="typing-indicator">
                 <span></span>
                 <span></span>
@@ -880,6 +873,15 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("settings-custom-url").value = apiSettings.customUrl || "";
     document.getElementById("settings-system-prompt").value = apiSettings.systemPrompt || "";
     
+    // Auto-resize do textarea do system prompt
+    const sysPromptEl = document.getElementById("settings-system-prompt");
+    const autoResize = () => {
+        sysPromptEl.style.height = "auto";
+        sysPromptEl.style.height = sysPromptEl.scrollHeight + "px";
+    };
+    sysPromptEl.addEventListener("input", autoResize);
+    setTimeout(autoResize, 0);
+    
     // Toggle campo URL Customizada se for o provider custom
     const toggleCustomUrl = () => {
         const provider = document.getElementById("settings-provider").value;
@@ -900,22 +902,11 @@ document.addEventListener("DOMContentLoaded", () => {
     // Atualizar status da API no header
     updateAPIStatus();
     
-    // Evento Toggle Sidebar (Hamburger)
-    const btnToggleSidebar = document.getElementById("btn-toggle-sidebar");
-    const chatSidebar = document.querySelector(".chat-sidebar");
-    if (btnToggleSidebar && chatSidebar) {
-        btnToggleSidebar.addEventListener("click", (e) => {
-            e.stopPropagation();
-            chatSidebar.classList.toggle("expanded");
-        });
-        
-        document.addEventListener("click", (e) => {
-            if (window.innerWidth <= 968 && chatSidebar.classList.contains("expanded")) {
-                if (!chatSidebar.contains(e.target) && e.target !== btnToggleSidebar && !btnToggleSidebar.contains(e.target)) {
-                    chatSidebar.classList.remove("expanded");
-                }
-            }
-        });
+    // Configurar estado inicial da conversa ou do formulário
+    if (conversations.length > 0) {
+        selectConversation(conversations[0].id);
+    } else {
+        updateFormPosition(false);
     }
     
     // Gerenciador de Anexos
@@ -1007,10 +998,38 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
     
+    // Logo do left-menu abre modal empresa
+    const leftMenuLogo = document.getElementById("left-menu-logo");
+    if (leftMenuLogo) {
+        leftMenuLogo.addEventListener("click", () => {
+            document.getElementById("company-overlay").classList.remove("hidden");
+        });
+    }
+    
     // Evento Nova Conversa
-    document.getElementById("btn-new-chat").addEventListener("click", () => {
-        createNewConversation();
-    });
+    const newChatBtn = document.getElementById("btn-new-chat");
+    if (newChatBtn) {
+        newChatBtn.addEventListener("click", () => {
+            createNewConversation();
+        });
+    }
+    
+    // Nova Conversa no left-menu
+    const menuNewChatBtn = document.getElementById("btn-menu-new-chat");
+    if (menuNewChatBtn) {
+        menuNewChatBtn.addEventListener("click", () => {
+            closeLeftMenu();
+            createNewConversation();
+        });
+    }
+    
+    // Botão Voltar ao Início no left-menu
+    const menuHomeBtn = document.getElementById("btn-menu-home");
+    if (menuHomeBtn) {
+        menuHomeBtn.addEventListener("click", () => {
+            window.location.href = "index.html";
+        });
+    }
     
     // Evento Abre Painel Configurações
     document.getElementById("btn-open-settings").addEventListener("click", () => {
@@ -1025,6 +1044,22 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("settings-sidebar-overlay").addEventListener("click", (e) => {
         if (e.target === document.getElementById("settings-sidebar-overlay")) {
             closeSettings();
+        }
+    });
+    
+    // Evento Abre Painel Empresa
+    document.getElementById("btn-open-company").addEventListener("click", () => {
+        document.getElementById("company-overlay").classList.remove("hidden");
+    });
+    
+    // Evento Fecha Painel Empresa
+    const closeCompany = () => {
+        document.getElementById("company-overlay").classList.add("hidden");
+    };
+    document.getElementById("btn-close-company").addEventListener("click", closeCompany);
+    document.getElementById("company-overlay").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("company-overlay")) {
+            closeCompany();
         }
     });
     
@@ -1132,6 +1167,13 @@ document.addEventListener("DOMContentLoaded", () => {
         card.addEventListener("click", () => {
             const promptText = card.getAttribute("data-prompt");
             handleSendMessage(promptText);
+            
+            // Preencher busca de prompts (se left-menu estiver aberto)
+            const searchInput = document.getElementById("chat-prompt-search-input");
+            if (searchInput) {
+                searchInput.value = promptText;
+                renderChatPromptSearch(promptText);
+            }
         });
     });
     
@@ -1162,4 +1204,42 @@ document.addEventListener("DOMContentLoaded", () => {
         aiSearchBtn.title = "API não configurada";
         aiSearchBtn.style.opacity = "0.4";
     }
+    
+    // ==========================================================================
+    // 9. LEFT MENU (Painel Lateral Esquerdo - abre ao clicar no hamburger)
+    // ==========================================================================
+    
+    const hamburgerBtn = document.getElementById("btn-hamburger");
+    const leftMenuOverlay = document.getElementById("left-menu-overlay");
+    const closeLeftMenuBtn = document.getElementById("btn-close-left-menu");
+    
+    function openLeftMenu() {
+        if (leftMenuOverlay) {
+            leftMenuOverlay.classList.remove("hidden");
+            renderConversationsList();
+        }
+    }
+    
+    function closeLeftMenu() {
+        if (leftMenuOverlay) {
+            leftMenuOverlay.classList.add("hidden");
+        }
+    }
+    
+    if (hamburgerBtn) {
+        hamburgerBtn.addEventListener("click", openLeftMenu);
+    }
+    
+    if (closeLeftMenuBtn) {
+        closeLeftMenuBtn.addEventListener("click", closeLeftMenu);
+    }
+    
+    if (leftMenuOverlay) {
+        leftMenuOverlay.addEventListener("click", (e) => {
+            if (e.target === leftMenuOverlay) {
+                closeLeftMenu();
+            }
+        });
+    }
+    
 });
