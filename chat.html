@@ -125,6 +125,15 @@
                         </svg>
                     </a>
                     
+                    <!-- Botão OpenRouter Info -->
+                    <button class="chat-header-btn" id="btn-open-or-info" title="Instruções OpenRouter" style="color: #c084fc;">
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                    </button>
+                    
                     <!-- Botão de Engrenagem (Configurações) -->
                     <button class="chat-header-btn" id="btn-open-settings" title="Configurações da API">
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2.2" fill="none">
@@ -234,6 +243,7 @@
                                 <option value="gemini">Google Gemini</option>
                                 <option value="openai">OpenAI (ChatGPT)</option>
                                 <option value="anthropic">Anthropic Claude</option>
+                                <option value="openrouter">OpenRouter</option>
                                 <option value="custom">Custom URL</option>
                             </select>
                         </div>
@@ -241,7 +251,7 @@
                         <div class="input-group">
                             <label for="settings-key">Chave de API (API Key)</label>
                             <input type="text" id="settings-key" placeholder="Insira sua chave de API (ex: AIzaSy...)" required autocomplete="off" autofill="off" spellcheck="false">
-                            <span class="input-help">Sua chave é salva apenas localmente no seu navegador. Obtenha uma chave em <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#c084fc;">Google AI Studio</a> (Gemini) ou <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#c084fc;">OpenAI</a>.</span>
+                            <span class="input-help">Sua chave é salva apenas localmente no seu navegador. Obtenha uma chave em <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color:#c084fc;">Google AI Studio</a>, <a href="https://platform.openai.com/api-keys" target="_blank" style="color:#c084fc;">OpenAI</a> ou acesse <a href="https://openrouter.ai/keys" target="_blank" style="color:#c084fc;">OpenRouter</a> para criar a sua.</span>
                         </div>
                     </div>
                     
@@ -274,6 +284,41 @@
                         <button type="submit" class="btn-settings-modal-primary">Salvar Ajustes</button>
                     </div>
                 </form>
+            </div>
+        </div>
+
+        <!-- Floating Modal: Info OpenRouter -->
+        <div class="or-info-modal-overlay hidden" id="or-info-overlay">
+            <div class="or-info-modal">
+                <div class="or-info-modal-header">
+                    <div class="or-info-modal-title-group">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="#c084fc" stroke-width="2" fill="none">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="12" y1="16" x2="12" y2="12"></line>
+                            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <span>Instruções OpenRouter</span>
+                    </div>
+                    <button class="or-info-modal-close" id="btn-close-or-info">
+                        <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2.5" fill="none">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+                
+                <div class="or-info-modal-body">
+                    <p>Siga os passos abaixo para usar o OpenRouter:</p>
+                    <ol>
+                        <li>No modal de Configurações, selecione <strong>OpenRouter</strong> em "Provedor da API".</li>
+                        <li>Acesse <a href="https://openrouter.ai/keys" target="_blank">openrouter.ai/keys</a> para criar e copiar a sua Chave de API, e cole no campo "Chave de API (API Key)".</li>
+                        <li>Insira o modelo que deseja usar no campo "Modelo", por exemplo: <br><code>google/gemini-1.5-pro</code><br><code>anthropic/claude-3-haiku</code><br><code>meta-llama/llama-3-8b-instruct</code></li>
+                        <li>Clique em <strong>Testar Conexão</strong> para confirmar que está funcionando!</li>
+                    </ol>
+                    <div class="or-info-modal-actions">
+                        <button type="button" class="btn-or-info-primary" id="btn-or-info-got-it">Entendido!</button>
+                    </div>
+                </div>
             </div>
         </div>
 

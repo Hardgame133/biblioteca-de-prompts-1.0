@@ -68,12 +68,18 @@ body {
 /* Header Styling */
 .main-header {
     width: 100%;
-    max-width: 1200px;
-    margin: 0 auto;
     padding: 24px 40px;
     display: flex;
     justify-content: space-between;
     align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+    background: rgba(4, 6, 12, 0.6);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(59, 130, 246, 0.06);
 }
 
 .logo {
@@ -137,7 +143,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    padding: 40px 24px 80px;
+    padding: 100px 24px 80px;
     max-width: 1200px;
     margin: 0 auto;
     width: 100%;
@@ -4031,3 +4037,275 @@ body::before {
         gap: 14px;
     }
 }
+
+/* ==========================================================================
+   OPENROUTER INFO MODAL (Preto com Roxo)
+   ========================================================================== */
+
+.or-info-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.or-info-modal-overlay:not(.hidden) {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.or-info-modal {
+    width: 100%;
+    max-width: 500px;
+    background: #0f0f13; /* Fundo preto */
+    border: 1px solid rgba(192, 132, 252, 0.3); /* Borda roxa */
+    border-radius: 20px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 20px rgba(192, 132, 252, 0.1);
+    transform: translateY(20px);
+    transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    margin: 16px;
+}
+
+.or-info-modal-overlay:not(.hidden) .or-info-modal {
+    transform: translateY(0);
+}
+
+.or-info-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 32px;
+    border-bottom: 1px solid rgba(192, 132, 252, 0.2);
+    background: linear-gradient(to right, rgba(20, 20, 25, 0.9), rgba(30, 20, 40, 0.9));
+}
+
+.or-info-modal-title-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #f3f4f6;
+}
+
+.or-info-modal-title-group svg {
+    filter: drop-shadow(0 0 6px rgba(192, 132, 252, 0.5));
+}
+
+.or-info-modal-close {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #9ca3af;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.or-info-modal-close:hover {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.2);
+    transform: rotate(90deg);
+}
+
+.or-info-modal-body {
+    padding: 32px;
+    color: #d1d5db;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.or-info-modal-body p {
+    margin-bottom: 16px;
+}
+
+.or-info-modal-body ol {
+    margin-bottom: 24px;
+    padding-left: 20px;
+}
+
+.or-info-modal-body li {
+    margin-bottom: 12px;
+}
+
+.or-info-modal-body a {
+    color: #c084fc;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.or-info-modal-body a:hover {
+    text-decoration: underline;
+}
+
+.or-info-modal-body code {
+    background: rgba(192, 132, 252, 0.1);
+    color: #c084fc;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: monospace;
+    font-size: 0.85rem;
+}
+
+.or-info-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 24px;
+}
+
+.btn-or-info-primary {
+    background: linear-gradient(135deg, #a855f7 0%, #c084fc 100%);
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
+.btn-or-info-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(168, 85, 247, 0.4);
+}
+
+/* ==========================================================================
+   SEÇÃO DE INFORMAÇÕES (INFO SECTION) - INDEX
+   ========================================================================== */
+
+.info-section {
+    margin-top: 80px;
+    margin-bottom: 40px;
+    padding: 60px 40px;
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    justify-content: center;
+    background: rgba(10, 10, 15, 0.4);
+    border-top: 1px solid rgba(168, 85, 247, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-radius: 24px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    z-index: 10;
+    position: relative;
+}
+
+.info-container {
+    text-align: left;
+    color: #e5e7eb;
+    width: 100%;
+}
+
+.info-title {
+    font-size: 32px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    margin-bottom: 24px;
+    background: linear-gradient(135deg, #ffffff 0%, #c084fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.info-description {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #d1d5db;
+    margin-bottom: 40px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.info-description strong {
+    color: #f3f4f6;
+    font-weight: 600;
+}
+
+.contact-card {
+    background: linear-gradient(145deg, rgba(168, 85, 247, 0.05) 0%, rgba(124, 58, 237, 0.1) 100%);
+    border: 1px solid rgba(168, 85, 247, 0.2);
+    border-radius: 16px;
+    padding: 30px;
+}
+
+.contact-card h3 {
+    font-size: 22px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 12px;
+}
+
+.contact-card p {
+    font-size: 15px;
+    color: #9ca3af;
+    line-height: 1.6;
+    margin-bottom: 24px;
+}
+
+.contact-email {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(168, 85, 247, 0.15);
+    color: #d8b4fe;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 12px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(168, 85, 247, 0.2);
+}
+
+.contact-email:hover {
+    background: rgba(168, 85, 247, 0.25);
+    color: #ffffff;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.2);
+}
+
+@media (max-width: 768px) {
+    .info-section {
+        padding: 40px 20px;
+        margin-top: 40px;
+        border-radius: 16px;
+    }
+    
+    .info-title {
+        font-size: 26px;
+    }
+    
+    .info-description {
+        font-size: 15px;
+    }
+    
+    .contact-card {
+        padding: 20px;
+    }
+}
+

@@ -72,16 +72,22 @@ async function searchWithAI(query) {
 
         const data = await res.json();
         responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-    } else if (provider === 'openai' || provider === 'custom') {
-        const baseUrl = provider === 'custom' ? settings.customUrl : 'https://api.openai.com/v1';
+    } else if (provider === 'openai' || provider === 'custom' || provider === 'openrouter') {
+        const baseUrl = provider === 'custom' ? settings.customUrl : (provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : 'https://api.openai.com/v1');
         const url = `${baseUrl}/chat/completions`;
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${settings.key}`
+        };
+        if (provider === 'openrouter') {
+            headers['HTTP-Referer'] = window.location.href;
+            headers['X-Title'] = 'Biblioteca de Prompts';
+        }
 
         const res = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${settings.key}`
-            },
+            headers: headers,
             body: JSON.stringify({
                 model: model,
                 messages: [

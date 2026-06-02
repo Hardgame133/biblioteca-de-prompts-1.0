@@ -267,19 +267,12 @@ function updateAPIStatus() {
 
 function updateFormPosition(hasMessages) {
     const chatForm = document.getElementById("chat-form");
-    const centerContainer = document.getElementById("chat-input-center-container");
     const footerArea = document.querySelector(".chat-input-area");
     
-    if (!chatForm) return;
+    if (!chatForm || !footerArea) return;
     
-    if (!hasMessages) {
-        if (centerContainer && chatForm.parentElement !== centerContainer) {
-            centerContainer.appendChild(chatForm);
-        }
-    } else {
-        if (footerArea && chatForm.parentElement !== footerArea) {
-            footerArea.insertBefore(chatForm, footerArea.firstChild);
-        }
+    if (chatForm.parentElement !== footerArea) {
+        footerArea.insertBefore(chatForm, footerArea.firstChild);
     }
 }
 
@@ -577,9 +570,9 @@ async function callAI(messagesList) {
         if (!aiText) throw new Error("A API do Gemini retornou uma resposta vazia.");
         return aiText;
         
-    } else if (provider === 'openai' || provider === 'custom') {
-        // OpenAI ou Provedor Customizado
-        const baseUrl = provider === 'custom' ? apiSettings.customUrl : 'https://api.openai.com/v1';
+    } else if (provider === 'openai' || provider === 'custom' || provider === 'openrouter') {
+        // OpenAI, OpenRouter ou Provedor Customizado
+        const baseUrl = provider === 'custom' ? apiSettings.customUrl : (provider === 'openrouter' ? 'https://openrouter.ai/api/v1' : 'https://api.openai.com/v1');
         const url = `${baseUrl}/chat/completions`;
         
         const messages = [];
@@ -593,13 +586,19 @@ async function callAI(messagesList) {
                 content: msg.content
             });
         });
+
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiSettings.key}`
+        };
+        if (provider === 'openrouter') {
+            headers['HTTP-Referer'] = window.location.href;
+            headers['X-Title'] = 'Biblioteca de Prompts';
+        }
         
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${apiSettings.key}`
-            },
+            headers: headers,
             body: JSON.stringify({
                 model: model,
                 messages: messages,
@@ -1063,6 +1062,23 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
     
+    // Evento Abre Painel Info OpenRouter
+    document.getElementById("btn-open-or-info").addEventListener("click", () => {
+        document.getElementById("or-info-overlay").classList.remove("hidden");
+    });
+    
+    // Eventos Fecha Painel Info OpenRouter
+    const closeOrInfo = () => {
+        document.getElementById("or-info-overlay").classList.add("hidden");
+    };
+    document.getElementById("btn-close-or-info").addEventListener("click", closeOrInfo);
+    document.getElementById("btn-or-info-got-it").addEventListener("click", closeOrInfo);
+    document.getElementById("or-info-overlay").addEventListener("click", (e) => {
+        if (e.target === document.getElementById("or-info-overlay")) {
+            closeOrInfo();
+        }
+    });
+
     // Envio do formulário de Configurações
     document.getElementById("api-settings-form").addEventListener("submit", (e) => {
         e.preventDefault();
